@@ -5,7 +5,7 @@ use collision::aabb::Aabb;
 use vec2d::Vec2d;
 use util;
 
-/// Convex is represents a convex polygon.
+/// Convex represents a convex polygon.
 /// It contains the necessary information to be used
 /// within collision detection algorithms
 pub struct Convex {

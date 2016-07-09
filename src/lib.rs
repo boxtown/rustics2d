@@ -5,5 +5,3 @@ pub mod vec2d;
 pub mod collision;
 
 mod util;
-
-extern crate uuid;

@@ -1,11 +1,8 @@
 use std::cmp::{Eq, PartialEq};
 use std::f64;
-use std::hash::{Hash, Hasher};
 use std::result::Result;
 use vec2d::Vec2d;
-use collision::broadphase::Container;
 use util;
-use uuid::Uuid;
 
 /// Intersect is trait that should be implemented by objects
 /// that must be able to determine whether or not they are intersecting
@@ -91,7 +88,6 @@ impl Intersect for ProjectedBox2d {
 /// Aabb contains the information for an axis aligned bounding box. 
 #[derive(Debug, Clone, Copy)]
 pub struct Aabb {
-    box_id: Uuid,
     center: Vec2d,
     half_l: f64,
     half_w: f64,
@@ -109,7 +105,6 @@ impl Aabb {
 
         let (xmin, xmax, half_x, ymin, ymax, half_y) = bounds_info(points);
         Ok(Aabb {
-            box_id: Uuid::new_v4(),
             center: Vec2d {
                 x: half_x,
                 y: half_y,
@@ -167,14 +162,6 @@ impl Project2d for Aabb {
     }
 }
 
-impl Hash for Aabb {
-    fn hash<H>(&self, state: &mut H)
-        where H: Hasher
-    {
-        self.box_id.hash(state)
-    }
-}
-
 // Custom PartialEq implementation that treats bounding boxes
 // with NAN values as always unequal
 impl PartialEq for Aabb {
@@ -185,7 +172,7 @@ impl PartialEq for Aabb {
         if rhs.half_w == f64::NAN || self.half_l == f64::NAN {
             return false;
         }
-        self.box_id == rhs.box_id && self.center == rhs.center && self.half_l == rhs.half_l &&
+        self.center == rhs.center && self.half_l == rhs.half_l &&
         self.half_w == rhs.half_w && self.projected == rhs.projected
     }
 }
@@ -193,8 +180,6 @@ impl PartialEq for Aabb {
 // We implement Eq for Aabb because we specifically handle the case of NAN
 // inside our custom PartialEq implementation
 impl Eq for Aabb {}
-
-impl Container for Aabb {}
 
 // Returns bounding box information used for the creation of Aabbs from
 // the passed in vector of Vec2ds

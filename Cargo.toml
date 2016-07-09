@@ -8,7 +8,3 @@ author = "Michael Ma"
 
 name = "rustics2d"
 path = "src/lib.rs"
-
-[dependencies]
-
-uuid = "0.1.18"
