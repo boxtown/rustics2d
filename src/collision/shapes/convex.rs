@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
 use std::result::Result;
 use std::vec::Vec;
-use collision::aabb::Aabb;
+use collision::Aabb;
+use collision::Collidable;
 use vec2d::Vec2d;
 use util;
 
@@ -35,6 +36,12 @@ impl Convex {
     /// making up the convex hull of this polygon
     pub fn points(&self) -> &[Vec2d] {
         &(*self.points)
+    }
+}
+
+impl Collidable for Convex {
+    fn aabb(&self) -> &Aabb {
+        &self.aabb
     }
 }
 

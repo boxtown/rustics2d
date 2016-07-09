@@ -76,8 +76,8 @@ impl Intersect<Aabb> for Aabb {
 }
 
 impl Project2d for Aabb {
-    fn projections2d(&self) -> ProjectedBox2d {
-        self.projected
+    fn projections2d(&self) -> &ProjectedBox2d {
+        &self.projected
     }
 }
 

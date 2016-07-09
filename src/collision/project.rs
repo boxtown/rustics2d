@@ -5,7 +5,7 @@ use util;
 /// that must be able to project themselves onto the axes
 /// of a 2d plane
 pub trait Project2d {
-    fn projections2d(&self) -> ProjectedBox2d;
+    fn projections2d(&self) -> &ProjectedBox2d;
 }
 
 /// Projection is a 2d vector representing the projection of a vector
