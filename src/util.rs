@@ -5,8 +5,7 @@ const THRESHOLD: f64 = 1e-10;
 /// Returns true if the floats are equal or within
 /// 1e-10 of each other
 pub fn feq(f1: f64, f2: f64) -> bool {
-    let diff = (f1 - f2).abs();
-    diff >= 0f64 && diff < THRESHOLD
+    (f1 - f2).abs() < THRESHOLD
 }
 
 /// Encodes an f64 as an i64 such that there is a bijective
