@@ -6,9 +6,9 @@ use util;
 
 /// Intersect is trait that should be implemented by objects
 /// that must be able to determine whether or not they are intersecting
-/// another object of the same type
-pub trait Intersect {
-    fn intersect(&self, rhs: &Self) -> bool;
+/// another object
+pub trait Intersect<T> {
+    fn intersect(&self, rhs: &T) -> bool;
 }
 
 /// Project2d is a trait that should be implemented by box shaped objects
@@ -64,10 +64,10 @@ impl Projection {
     }
 }
 
-impl Intersect for Projection {
-    fn intersect(&self, rhs: &Self) -> bool {
-        (self.start >= rhs.start && self.start <= rhs.end) ||
-        (rhs.start >= self.start && rhs.start <= self.end)
+impl Intersect<Projection> for Projection {
+    fn intersect(&self, rhs: &Projection) -> bool {
+        (self.start >= rhs.enc_start() && self.start <= rhs.enc_end()) ||
+        (rhs.enc_start() >= self.start && rhs.enc_start() <= self.end)
     }
 }
 
@@ -79,7 +79,7 @@ pub struct ProjectedBox2d {
     pub y: Projection,
 }
 
-impl Intersect for ProjectedBox2d {
+impl Intersect<ProjectedBox2d> for ProjectedBox2d {
     fn intersect(&self, rhs: &Self) -> bool {
         self.x.intersect(&rhs.x) && self.y.intersect(&rhs.y)
     }
@@ -150,7 +150,7 @@ impl Aabb {
     }
 }
 
-impl Intersect for Aabb {
+impl Intersect<Aabb> for Aabb {
     fn intersect(&self, rhs: &Self) -> bool {
         self.projected.intersect(&rhs.projected)
     }
@@ -172,8 +172,8 @@ impl PartialEq for Aabb {
         if rhs.half_w == f64::NAN || self.half_l == f64::NAN {
             return false;
         }
-        self.center == rhs.center && self.half_l == rhs.half_l &&
-        self.half_w == rhs.half_w && self.projected == rhs.projected
+        self.center == rhs.center && self.half_l == rhs.half_l && self.half_w == rhs.half_w &&
+        self.projected == rhs.projected
     }
 }
 
