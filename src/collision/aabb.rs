@@ -11,15 +11,15 @@ pub struct Aabb {
 }
 
 impl Aabb {
-    /// Returns a new instance of an Aabb formed from the passed in points
-    /// or an error if an Aabb is unabled to be formed from the passed in points
-    /// (namely when the number of points is less than 3)
-    pub fn new(points: &[Vec2d]) -> Result<Aabb, ()> {
-        if points.len() < 3 {
+    /// Returns a new instance of an Aabb formed from the passed in vertices
+    /// or an error if an Aabb is unabled to be formed from the passed in vertices
+    /// (namely when the number of vertices is less than 3)
+    pub fn new(vertices: &[Vec2d]) -> Result<Aabb, ()> {
+        if vertices.len() < 3 {
             return Err(());
         }
 
-        let (xmin, xmax, ymin, ymax) = bounds_info(points);
+        let (xmin, xmax, ymin, ymax) = bounds_info(vertices);
         Ok(Aabb {
             min: Vec2d::new(xmin, ymin),
             max: Vec2d::new(xmax, ymax),
@@ -35,12 +35,12 @@ impl Aabb {
 
     /// Completely reconstructs the bounds of the bounding box from the passed in
     /// Vector of Vec2ds
-    pub fn reconstruct(&mut self, points: &[Vec2d]) -> Result<(), ()> {
-        if points.len() < 3 {
+    pub fn reconstruct(&mut self, vertices: &[Vec2d]) -> Result<(), ()> {
+        if vertices.len() < 3 {
             return Err(());
         }
 
-        let (xmin, xmax, ymin, ymax) = bounds_info(points);
+        let (xmin, xmax, ymin, ymax) = bounds_info(vertices);
         self.min = Vec2d::new(xmin, ymin);
         self.max = Vec2d::new(xmax, ymax);
         Ok(())
@@ -64,13 +64,13 @@ impl Intersect<Aabb> for Aabb {
 
 // Returns bounding box information used for the creation of Aabbs from
 // the passed in vector of Vec2ds
-fn bounds_info(points: &[Vec2d]) -> (f64, f64, f64, f64) {
+fn bounds_info(vertices: &[Vec2d]) -> (f64, f64, f64, f64) {
     let mut xmin = f64::MAX;
     let mut xmax = f64::MIN;
     let mut ymin = f64::MAX;
     let mut ymax = f64::MIN;
 
-    for point in points {
+    for point in vertices {
         if point.x < xmin {
             xmin = point.x;
         }
