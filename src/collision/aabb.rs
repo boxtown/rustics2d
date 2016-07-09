@@ -204,7 +204,7 @@ fn bounds_info(points: &[Vec2d]) -> (f64, f64, f64, f64, f64, f64) {
         }
     }
 
-    let half_x = (xmax - xmin) / 2f64;
-    let half_y = (ymax - ymin) / 2f64;
+    let half_x = (xmax - xmin) / 2.0;
+    let half_y = (ymax - ymin) / 2.0;
     (xmin, xmax, half_x, ymin, ymax, half_y)
 }

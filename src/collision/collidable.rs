@@ -124,10 +124,10 @@ fn graham_scan(points: &mut [Vec2d]) -> Result<Vec<Vec2d>, ()> {
 // Returns the type of angle three points form in 2d space
 fn point_angle(p1: Vec2d, p2: Vec2d, p3: Vec2d) -> PointAngle {
     let x = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
-    if util::feq(x, 0f64) {
+    if util::feq(x, 0.0) {
         return PointAngle::Collinear;
     }
-    if x < 0f64 {
+    if x < 0.0 {
         return PointAngle::Clockwise;
     }
     return PointAngle::CounterClockwise;
