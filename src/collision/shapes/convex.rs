@@ -10,6 +10,7 @@ use util;
 /// within collision detection algorithms
 pub struct Convex {
     vertices: Vec<Vec2d>,
+    normals: Vec<Vec2d>,
     aabb: Aabb,
 }
 
@@ -20,21 +21,37 @@ impl Convex {
     /// the returned polygon
     pub fn new(vertices: &[Vec2d]) -> Result<Convex, ()> {
         let mut clone = vertices.to_vec();
-        match graham_scan(&mut clone) {
-            Ok(hull) => {
-                Ok(Convex {
-                    vertices: hull,
-                    aabb: Aabb::new(vertices).unwrap(),
-                })
+        graham_scan(&mut clone).map(|hull| {
+            let mut normals = Vec::new();
+            for i in 0..hull.len() {
+                let i2 = if i + 1 < hull.len() {
+                    i + 1
+                } else {
+                    0
+                };
+
+                let edge = hull[i2] - hull[i];
+                normals.push(Vec2d::new(1.0 * edge.y, -1.0 * edge.x).normalize());
             }
-            Err(_) => Err(()),
-        }
+
+            Convex {
+                vertices: hull,
+                normals: normals,
+                aabb: Aabb::new(&vertices).unwrap(),
+            }
+        })
     }
 
     /// Returns a reference to the slice of vertices
     /// making up the convex hull of this polygon
     pub fn vertices(&self) -> &[Vec2d] {
         &(*self.vertices)
+    }
+
+    /// Returns a reference to the slice of edge normals
+    /// for this convex polygon
+    pub fn normals(&self) -> &[Vec2d] {
+        &(*self.normals)
     }
 }
 
@@ -179,63 +196,63 @@ mod test {
         // test too few vertices
         let mut v: Vec<Vec2d> = Vec::new();
         assert_eq!(Convex::new(&mut v).is_err(), true);
-        v.push(Vec2d { x: 0.0, y: 0.0 });
-        v.push(Vec2d { x: 1.0, y: 1.0 });
+        v.push(Vec2d::new(0.0, 0.0));
+        v.push(Vec2d::new(1.0, 1.0));
         assert_eq!(Convex::new(&mut v).is_err(), true);
 
         // test basic hull
-        v.push(Vec2d { x: 1.0, y: 0.0 });
+        v.push(Vec2d::new(1.0, 0.0));
         let mut clone = v.clone();
         let mut r = Convex::new(&mut clone);
         let mut r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
             assert_eq!(3, r_vertices.len());
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 0.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(0.0, 0.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 1.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 1.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 0.0)).is_none() {
                 assert!(false);
             }
         }
 
         // add internal point
-        v.push(Vec2d { x: 0.5, y: 0.5 });
+        v.push(Vec2d::new(0.5, 0.5));
         clone = v.clone();
         r = Convex::new(&mut clone);
         r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
             assert_eq!(3, r_vertices.len());
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 0.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(0.0, 0.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 1.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 1.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 0.0)).is_none() {
                 assert!(false);
             }
         }
 
         // add collinear point
-        v.push(Vec2d { x: 1.0, y: 0.5 });
+        v.push(Vec2d::new(1.0, 0.5));
         clone = v.clone();
         r = Convex::new(&mut clone);
         r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
             assert_eq!(3, r_vertices.len());
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 0.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(0.0, 0.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 1.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 1.0)).is_none() {
                 assert!(false);
             }
-            if r_vertices.iter().find(|&x| *x == Vec2d { x: 1.0, y: 0.0 }).is_none() {
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 0.0)).is_none() {
                 assert!(false);
             }
         }

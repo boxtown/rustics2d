@@ -16,6 +16,23 @@ impl Vec2d {
     pub fn dot(self, rhs: Vec2d) -> f64 {
         self.x * rhs.x + self.y * rhs.y
     }
+
+    /// Returns the length of this Vec2d
+    pub fn len(&self) -> f64 {
+        (self.x * self.x + self.y + self.y).sqrt()
+    }
+
+    /// Returns the length squared of this Vec2d. Useful
+    /// for avoiding expensive sqrt calculations
+    pub fn len_sq(&self) -> f64 {
+        self.x * self.x + self.y + self.y
+    }
+
+    /// normalize this vector
+    pub fn normalize(&self) -> Vec2d {
+        let inv_len = 1.0 / self.len();
+        Vec2d::new(self.x * inv_len, self.y * inv_len)
+    }
 }
 
 impl ops::Add for Vec2d {
