@@ -1,9 +1,7 @@
-use std::cmp::PartialEq;
 use std::ops;
-use util;
 
 /// Vec2d represents a two dimensional vector
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec2d {
     pub x: f64,
     pub y: f64,
@@ -31,11 +29,25 @@ impl ops::Add for Vec2d {
     }
 }
 
+impl ops::AddAssign for Vec2d {
+    fn add_assign(&mut self, rhs: Vec2d) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
+}
+
 impl ops::Sub for Vec2d {
     type Output = Vec2d;
 
     fn sub(self, rhs: Vec2d) -> Vec2d {
         self + -rhs
+    }
+}
+
+impl ops::SubAssign for Vec2d {
+    fn sub_assign(&mut self, rhs: Vec2d) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
     }
 }
 
@@ -58,6 +70,13 @@ impl ops::Mul<f64> for Vec2d {
     }
 }
 
+impl ops::MulAssign<f64> for Vec2d {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.x *= rhs;
+        self.y *= rhs;
+    }
+}
+
 impl ops::Div<f64> for Vec2d {
     type Output = Vec2d;
 
@@ -69,6 +88,13 @@ impl ops::Div<f64> for Vec2d {
     }
 }
 
+impl ops::DivAssign<f64> for Vec2d {
+    fn div_assign(&mut self, rhs: f64) {
+        self.x /= rhs;
+        self.y /= rhs;
+    }
+}
+
 impl ops::Neg for Vec2d {
     type Output = Vec2d;
 
@@ -77,15 +103,5 @@ impl ops::Neg for Vec2d {
             x: -self.x,
             y: -self.y,
         }
-    }
-}
-
-impl PartialEq for Vec2d {
-    fn eq(&self, other: &Self) -> bool {
-        util::feq(self.x, other.x) && util::feq(self.y, other.y)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        !(self == other)
     }
 }

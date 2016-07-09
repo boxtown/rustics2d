@@ -1,16 +1,13 @@
-use std::cmp::{Eq, PartialEq};
 use std::f64;
 use std::result::Result;
-use collision::{Intersect, Project2d, Projection, ProjectedBox2d};
+use collision::Intersect;
 use vec2d::Vec2d;
 
 /// Aabb contains the information for an axis aligned bounding box. 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Aabb {
-    center: Vec2d,
-    half_l: f64,
-    half_w: f64,
-    projected: ProjectedBox2d,
+    min: Vec2d,
+    max: Vec2d,
 }
 
 impl Aabb {
@@ -22,29 +19,18 @@ impl Aabb {
             return Err(());
         }
 
-        let (xmin, xmax, half_x, ymin, ymax, half_y) = bounds_info(points);
+        let (xmin, xmax, ymin, ymax) = bounds_info(points);
         Ok(Aabb {
-            center: Vec2d {
-                x: half_x,
-                y: half_y,
-            },
-            half_l: half_x - xmin,
-            half_w: half_y - ymin,
-            projected: ProjectedBox2d {
-                x: Projection::new(xmin, xmax),
-                y: Projection::new(ymin, ymax),
-            },
+            min: Vec2d::new(xmin, ymin),
+            max: Vec2d::new(xmax, ymax),
         })
     }
 
     /// Translates the center of the Aabb by the passed in Vec2d and updates
     /// the bounds of the bounding box
     pub fn translate(&mut self, movement: Vec2d) {
-        self.center = self.center + movement;
-        self.projected = ProjectedBox2d {
-            x: Projection::new(self.center.x - self.half_w, self.center.x + self.half_w),
-            y: Projection::new(self.center.y - self.half_l, self.center.y + self.half_l),
-        };
+        self.min += movement;
+        self.max += movement;
     }
 
     /// Completely reconstructs the bounds of the bounding box from the passed in
@@ -54,55 +40,31 @@ impl Aabb {
             return Err(());
         }
 
-        let (xmin, xmax, half_x, ymin, ymax, half_y) = bounds_info(points);
-        self.center = Vec2d {
-            x: half_x,
-            y: half_y,
-        };
-        self.half_l = half_x - xmin;
-        self.half_w = half_y - ymin;
-        self.projected = ProjectedBox2d {
-            x: Projection::new(xmin, xmax),
-            y: Projection::new(ymin, ymax),
-        };
+        let (xmin, xmax, ymin, ymax) = bounds_info(points);
+        self.min = Vec2d::new(xmin, ymin);
+        self.max = Vec2d::new(xmax, ymax);
         Ok(())
     }
 }
 
 impl Intersect<Aabb> for Aabb {
     fn intersect(&self, rhs: &Self) -> bool {
-        self.projected.intersect(&rhs.projected)
-    }
-}
+        let d1 = self.min - rhs.max;
+        let d2 = rhs.min - self.max;
 
-impl Project2d for Aabb {
-    fn projections2d(&self) -> &ProjectedBox2d {
-        &self.projected
-    }
-}
-
-// Custom PartialEq implementation that treats bounding boxes
-// with NAN values as always unequal
-impl PartialEq for Aabb {
-    fn eq(&self, rhs: &Aabb) -> bool {
-        if self.half_w == f64::NAN || self.half_l == f64::NAN {
+        if d1.x > 0.0 || d1.y > 0.0 {
             return false;
         }
-        if rhs.half_w == f64::NAN || self.half_l == f64::NAN {
+        if d2.x > 0.0 || d2.y > 0.0 {
             return false;
         }
-        self.center == rhs.center && self.half_l == rhs.half_l && self.half_w == rhs.half_w &&
-        self.projected == rhs.projected
+        true
     }
 }
-
-// We implement Eq for Aabb because we specifically handle the case of NAN
-// inside our custom PartialEq implementation
-impl Eq for Aabb {}
 
 // Returns bounding box information used for the creation of Aabbs from
 // the passed in vector of Vec2ds
-fn bounds_info(points: &[Vec2d]) -> (f64, f64, f64, f64, f64, f64) {
+fn bounds_info(points: &[Vec2d]) -> (f64, f64, f64, f64) {
     let mut xmin = f64::MAX;
     let mut xmax = f64::MIN;
     let mut ymin = f64::MAX;
@@ -123,7 +85,5 @@ fn bounds_info(points: &[Vec2d]) -> (f64, f64, f64, f64, f64, f64) {
         }
     }
 
-    let half_x = (xmax - xmin) / 2.0;
-    let half_y = (ymax - ymin) / 2.0;
-    (xmin, xmax, half_x, ymin, ymax, half_y)
+    (xmin, xmax, ymin, ymax)
 }
