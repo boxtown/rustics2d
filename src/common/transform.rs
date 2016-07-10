@@ -1,6 +1,7 @@
 use common::{Rotation, Vec2d};
 
 /// Represents a transform in 2d space. (e.g. a translate and a rotate)
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Transform {
     position: Vec2d,
     rotation: Rotation,

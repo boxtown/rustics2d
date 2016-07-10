@@ -6,8 +6,8 @@ use common::Vec2d;
 /// Aabb contains the information for an axis aligned bounding box. 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Aabb {
-    pub min: Vec2d,
-    pub max: Vec2d,
+    min: Vec2d,
+    max: Vec2d,
 }
 
 impl Aabb {
@@ -26,29 +26,21 @@ impl Aabb {
         })
     }
 
-    /// Translates the center of the Aabb by the passed in Vec2d and updates
-    /// the bounds of the bounding box
-    pub fn translate(&mut self, movement: Vec2d) {
-        self.min += movement;
-        self.max += movement;
+    /// Returns the `Vec2d` representing
+    /// the lower left corner of this AABB
+    pub fn min(&self) -> &Vec2d {
+        &self.min
     }
 
-    /// Completely reconstructs the bounds of the bounding box from the passed in
-    /// Vector of Vec2ds
-    pub fn reconstruct(&mut self, vertices: &[Vec2d]) -> Result<(), ()> {
-        if vertices.len() < 3 {
-            return Err(());
-        }
-
-        let (xmin, xmax, ymin, ymax) = bounds_info(vertices);
-        self.min = Vec2d::new(xmin, ymin);
-        self.max = Vec2d::new(xmax, ymax);
-        Ok(())
+    /// Returns the `Vec2d` representing
+    /// the upper right corner of this AABB
+    pub fn max(&self) -> &Vec2d {
+        &self.max
     }
-}
 
-impl Intersect<Aabb> for Aabb {
-    fn intersect(&self, rhs: &Self) -> bool {
+    /// Returns if this `Aabb` intersects the passed in
+    /// `Aabb`
+    fn intersects(&self, rhs: &Aabb) -> bool {
         let d1 = self.min - rhs.max;
         let d2 = rhs.min - self.max;
 

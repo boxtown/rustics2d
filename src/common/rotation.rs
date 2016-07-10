@@ -1,4 +1,5 @@
 /// Represents a 2d rotation in radians
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rotation {
     sin: f64,
     cos: f64,

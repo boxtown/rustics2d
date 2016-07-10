@@ -66,13 +66,6 @@ impl Collidable for Convex {
     }
 }
 
-impl Intersect<Convex> for Convex {
-    fn intersect(&self, rhs: &Convex) -> bool {
-        // TODO: implement SAT
-        false
-    }
-}
-
 // The type of angle three consecutive
 // vertices form in 2d space
 #[derive(Debug, Eq, PartialEq)]
