@@ -1,13 +1,13 @@
 use std::f64;
 use std::result::Result;
 use collision::Intersect;
-use vec2d::Vec2d;
+use common::Vec2d;
 
 /// Aabb contains the information for an axis aligned bounding box. 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Aabb {
-    min: Vec2d,
-    max: Vec2d,
+    pub min: Vec2d,
+    pub max: Vec2d,
 }
 
 impl Aabb {

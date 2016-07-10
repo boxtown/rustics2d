@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::result::Result;
 use std::vec::Vec;
 use collision::{Aabb, Collidable, Intersect};
-use vec2d::Vec2d;
+use common::Vec2d;
 use util;
 
 /// Convex represents a convex polygon.
@@ -11,7 +11,6 @@ use util;
 pub struct Convex {
     vertices: Vec<Vec2d>,
     normals: Vec<Vec2d>,
-    aabb: Aabb,
 }
 
 impl Convex {
@@ -21,6 +20,8 @@ impl Convex {
     /// the returned polygon
     pub fn new(vertices: &[Vec2d]) -> Result<Convex, ()> {
         let mut clone = vertices.to_vec();
+        // TODO: meld edges according to some line slop like in Box2d
+        // TODO: switch graham scan out for gift-wrapping algorithm and test for speed
         graham_scan(&mut clone).map(|hull| {
             let mut normals = Vec::new();
             for i in 0..hull.len() {
@@ -31,13 +32,13 @@ impl Convex {
                 };
 
                 let edge = hull[i2] - hull[i];
+                // TODO: assert non-0 length edge
                 normals.push(Vec2d::new(1.0 * edge.y, -1.0 * edge.x).normalize());
             }
 
             Convex {
                 vertices: hull,
                 normals: normals,
-                aabb: Aabb::new(&vertices).unwrap(),
             }
         })
     }
@@ -56,8 +57,11 @@ impl Convex {
 }
 
 impl Collidable for Convex {
-    fn aabb(&self) -> &Aabb {
-        &self.aabb
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            min: Vec2d::new(0.0, 0.0),
+            max: Vec2d::new(0.0, 0.0),
+        }
     }
 }
 

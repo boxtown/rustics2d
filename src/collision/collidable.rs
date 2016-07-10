@@ -4,5 +4,5 @@ use collision::Aabb;
 pub trait Collidable {
     /// Computes and returns an Axis-aligned Bounding Box
     /// for the collidable
-    fn aabb(&self) -> &Aabb;
+    fn aabb(&self) -> Aabb;
 }

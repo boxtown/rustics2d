@@ -8,27 +8,33 @@ pub struct Vec2d {
 }
 
 impl Vec2d {
+    /// Creates a new `Vec2d` with the specified `x` and `y` values
     pub fn new(x: f64, y: f64) -> Vec2d {
         Vec2d { x: x, y: y }
     }
 
-    /// Returns the dot product of this Vec2d with another Vec2d
+    /// Creates a new zero `Vec2d` vector
+    pub fn zero() -> Vec2d {
+        Vec2d { x: 0.0, y: 0.0 } 
+    }
+
+    /// Returns the dot product of this `Vec2d` with another `Vec2d`
     pub fn dot(self, rhs: Vec2d) -> f64 {
         self.x * rhs.x + self.y * rhs.y
     }
 
-    /// Returns the length of this Vec2d
+    /// Returns the length of this `Vec2d`
     pub fn len(&self) -> f64 {
         (self.x * self.x + self.y + self.y).sqrt()
     }
 
-    /// Returns the length squared of this Vec2d. Useful
+    /// Returns the length squared of this `Vec2d`. Useful
     /// for avoiding expensive sqrt calculations
     pub fn len_sq(&self) -> f64 {
         self.x * self.x + self.y + self.y
     }
 
-    /// normalize this vector
+    /// normalize this vector (e.g. for Vector `v`, `v.x /= |v|`, `v.y /= |v|`)
     pub fn normalize(&self) -> Vec2d {
         let inv_len = 1.0 / self.len();
         Vec2d::new(self.x * inv_len, self.y * inv_len)
