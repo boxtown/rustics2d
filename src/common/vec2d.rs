@@ -1,4 +1,5 @@
 use std::ops;
+use common::Transform;
 
 /// Vec2d represents a two dimensional vector
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -15,7 +16,7 @@ impl Vec2d {
 
     /// Creates a new zero `Vec2d` vector
     pub fn zero() -> Vec2d {
-        Vec2d { x: 0.0, y: 0.0 } 
+        Vec2d { x: 0.0, y: 0.0 }
     }
 
     /// Returns the dot product of this `Vec2d` with another `Vec2d`
@@ -38,6 +39,16 @@ impl Vec2d {
     pub fn normalize(&self) -> Vec2d {
         let inv_len = 1.0 / self.len();
         Vec2d::new(self.x * inv_len, self.y * inv_len)
+    }
+
+    /// apply a `Transform` to a `Vec2d` and return the result
+    pub fn apply(&self, transform: &Transform) -> Vec2d {
+        let rotation = transform.rotation();
+        let position = transform.position();
+
+        // inlining matrix mult to avoid allocation of new vecs
+        Vec2d::new((rotation.cos() * self.x - rotation.sin() * self.y) + position.x,
+                   (rotation.sin() * self.x + rotation.cos() * self.y) + position.y)
     }
 }
 

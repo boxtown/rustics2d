@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::result::Result;
 use std::vec::Vec;
 use collision::{Aabb, Collidable, Intersect};
-use common::Vec2d;
+use common::{Transform, Vec2d};
 use util;
 
 /// Convex represents a convex polygon.
@@ -46,27 +46,29 @@ impl Convex {
     /// Returns a reference to the slice of vertices
     /// making up the convex hull of this polygon
     pub fn vertices(&self) -> &[Vec2d] {
-        &(*self.vertices)
+        &self.vertices
     }
 
     /// Returns a reference to the slice of edge normals
     /// for this convex polygon
     pub fn normals(&self) -> &[Vec2d] {
-        &(*self.normals)
+        &self.normals
     }
 }
 
 impl Collidable for Convex {
-    fn aabb(&self) -> Aabb {
-        Aabb {
-            min: Vec2d::new(0.0, 0.0),
-            max: Vec2d::new(0.0, 0.0),
-        }
+    fn aabb(&self, transform: &Transform) -> Aabb {
+        let transformed: Vec<Vec2d> = self.vertices()
+                                          .into_iter()
+                                          .map(|v| v.apply(transform))
+                                          .collect();
+        Aabb::new(&transformed).unwrap()
     }
 }
 
 impl Intersect<Convex> for Convex {
     fn intersect(&self, rhs: &Convex) -> bool {
+        // TODO: implement SAT
         false
     }
 }
