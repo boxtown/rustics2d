@@ -19,10 +19,9 @@ impl Convex {
     /// Only the vertices on the minimal convex hull will be saved within
     /// the returned polygon
     pub fn new(vertices: &[Vec2d]) -> Result<Convex, ()> {
-        let mut clone = vertices.to_vec();
         // TODO: meld edges according to some line slop like in Box2d
         // TODO: switch graham scan out for gift-wrapping algorithm and test for speed
-        graham_scan(&mut clone).map(|hull| {
+        graham_scan(&vertices).map(|hull| {
             let mut normals = Vec::new();
             for i in 0..hull.len() {
                 let i2 = if i + 1 < hull.len() {
@@ -60,9 +59,15 @@ impl HasAabb for Convex {
     fn aabb(&self, transform: &Transform) -> Aabb {
         let transformed: Vec<Vec2d> = self.vertices()
                                           .into_iter()
-                                          .map(|v| v.apply(transform))
+                                          .map(|v| v.transform(transform))
                                           .collect();
         Aabb::new(&transformed).unwrap()
+    }
+}
+
+impl CollidesWith<Convex> for Convex {
+    fn collides_with(&self, other: &Convex, this_t: &Transform, other_t: &Transform) -> bool {
+        false
     }
 }
 
@@ -75,21 +80,23 @@ enum VertexAngle {
     CounterClockwise,
 }
 
-fn graham_scan(vertices: &mut [Vec2d]) -> Result<Vec<Vec2d>, ()> {
+fn graham_scan(vertices: &[Vec2d]) -> Result<Vec<Vec2d>, ()> {
     let n = vertices.len();
     if n < 3 {
         return Err(());
     }
 
+    let mut clone = vertices.to_vec();
+
     // find bottom-most vertex and swap
     // with first point
-    let i = lowest_y_index(vertices);
-    vertices.swap(0, i);
+    let i = lowest_y_index(&clone);
+    clone.swap(0, i);
 
     // sort vertices by polar coordinates with
     // respect to first point
-    let sentinel = vertices[0];
-    vertices.sort_by(|p1, p2| {
+    let sentinel = clone[0];
+    clone.sort_by(|p1, p2| {
         let vertex_angle = vertex_angle(sentinel, *p1, *p2);
         match vertex_angle {
             VertexAngle::Collinear => {
@@ -111,33 +118,33 @@ fn graham_scan(vertices: &mut [Vec2d]) -> Result<Vec<Vec2d>, ()> {
     let mut m: usize = 1;
     let mut i: usize = 1;
     while i < n {
-        let p1 = vertices[i];
+        let p1 = clone[i];
         let p2 = match i + 1 == n {
-            true => vertices[0],
-            false => vertices[i + 1],
+            true => clone[0],
+            false => clone[i + 1],
         };
         while i < n - 1 && vertex_angle(sentinel, p1, p2) == VertexAngle::Collinear {
             i += 1;
         }
 
-        vertices[m] = vertices[i];
+        clone[m] = clone[i];
         m += 1;
         i += 1;
     }
 
     // push first two vertices into hull
     let mut hull = Vec::new();
-    hull.push(vertices[0]);
-    hull.push(vertices[1]);
+    hull.push(clone[0]);
+    hull.push(clone[1]);
 
     // process remaining vertices
     i = 2;
     while i < m {
         // keep removing top while the angle formed by
-        // next-to-top, top, and vertices[i] makes a non-left turn
+        // next-to-top, top, and clone[i] makes a non-left turn
         let mut top = hull[hull.len() - 1];
         let mut next = hull[hull.len() - 2];
-        let p = vertices[i];
+        let p = clone[i];
         while hull.len() >= 3 && vertex_angle(next, top, p) != VertexAngle::CounterClockwise {
             hull.pop();
             top = hull[hull.len() - 1];

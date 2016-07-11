@@ -1,5 +1,5 @@
 use std::ops;
-use common::Transform;
+use common::{Rotation, Transform};
 
 /// Vec2d represents a two dimensional vector
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -41,14 +41,26 @@ impl Vec2d {
         Vec2d::new(self.x * inv_len, self.y * inv_len)
     }
 
-    /// apply a `Transform` to a `Vec2d` and return the result
-    pub fn apply(&self, transform: &Transform) -> Vec2d {
+    /// transform a `Vec2d` using a `Transform` and return the result
+    pub fn transform(&self, transform: &Transform) -> Vec2d {
         let rotation = transform.rotation();
         let position = transform.position();
 
         // inlining matrix mult to avoid allocation of new vecs
         Vec2d::new((rotation.cos() * self.x - rotation.sin() * self.y) + position.x,
                    (rotation.sin() * self.x + rotation.cos() * self.y) + position.y)
+    }
+
+    /// rotate a `Vec2d` using a `Rotation` and return the result
+    pub fn rotate(&self, rotation: &Rotation) -> Vec2d {
+        Vec2d::new(rotation.cos() * self.x - rotation.sin() * self.y,
+                   rotation.sin() + self.x + rotation.cos() * self.y)
+    }
+
+    /// inverse rotation of a `Vec2d` using a `Rotation` and return the result
+    pub fn inv_rotate(&self, rotation: &Rotation) -> Vec2d {
+        Vec2d::new(rotation.cos() * self.x + rotation.sin() * self.y,
+                   -rotation.sin() + self.x + rotation.cos() * self.y)
     }
 }
 
