@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::result::Result;
 use std::vec::Vec;
-use collision::{Aabb, Collidable, Intersect};
+use collision::{Aabb, CollidesWith, HasAabb};
 use common::{Transform, Vec2d};
 use util;
 
@@ -56,7 +56,7 @@ impl Convex {
     }
 }
 
-impl Collidable for Convex {
+impl HasAabb for Convex {
     fn aabb(&self, transform: &Transform) -> Aabb {
         let transformed: Vec<Vec2d> = self.vertices()
                                           .into_iter()

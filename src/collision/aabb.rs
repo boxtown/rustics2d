@@ -1,6 +1,5 @@
 use std::f64;
 use std::result::Result;
-use collision::Intersect;
 use common::Vec2d;
 
 /// Aabb contains the information for an axis aligned bounding box. 
@@ -40,7 +39,7 @@ impl Aabb {
 
     /// Returns if this `Aabb` intersects the passed in
     /// `Aabb`
-    fn intersects(&self, rhs: &Aabb) -> bool {
+    pub fn intersects(&self, rhs: &Aabb) -> bool {
         let d1 = self.min - rhs.max;
         let d2 = rhs.min - self.max;
 

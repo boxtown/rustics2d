@@ -1,7 +1,9 @@
 pub use self::aabb::Aabb;
-pub use self::collidable::Collidable;
+pub use self::collides_with::CollidesWith;
+pub use self::has_aabb::HasAabb;
 
 pub mod shapes;
 
 mod aabb;
-mod collidable;
+mod collides_with;
+mod has_aabb;
