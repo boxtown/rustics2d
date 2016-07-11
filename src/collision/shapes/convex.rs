@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::f64;
 use std::result::Result;
 use std::vec::Vec;
 use collision::{Aabb, CollidesWith, HasAabb};
@@ -67,8 +68,46 @@ impl HasAabb for Convex {
 
 impl CollidesWith<Convex> for Convex {
     fn collides_with(&self, other: &Convex, this_t: &Transform, other_t: &Transform) -> bool {
-        false
+        let (_, sep_a) = find_max_separation(self, other, this_t, other_t);
+        if sep_a > util::TOLERANCE {
+            return false;
+        }
+        let (_, sep_b) = find_max_separation(other, self, this_t, other_t);
+        if sep_b > util::TOLERANCE {
+            return false;
+        }
+        true
     }
+}
+
+fn find_max_separation(a: &Convex, b: &Convex, at: &Transform, bt: &Transform) -> (usize, f64) {
+    let va = a.vertices();
+    let na = a.normals();
+    let vb = b.vertices();
+
+    let mut best_i = 0;
+    let mut max_sep = f64::MIN;
+
+    for i in 0..va.len() {
+        let vertex_a = va[i].transform(at);
+        let normal_a = na[i].rotate(at.rotation());
+
+        let mut best_proj = f64::MIN;
+        for j in 0..vb.len() {
+            let vertex_b = vb[j].transform(bt);
+            let proj = normal_a * (vertex_b - vertex_a);
+            if proj > best_proj {
+                best_proj = proj;
+            }
+        }
+
+        if best_proj > max_sep {
+            best_i = i;
+            max_sep = best_proj;
+        }
+    }
+
+    (best_i, max_sep)
 }
 
 // The type of angle three consecutive

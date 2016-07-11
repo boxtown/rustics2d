@@ -1,4 +1,4 @@
-const TOLERANCE: f64 = 1e-10;
+pub const TOLERANCE: f64 = 1e-10;
 
 /// Returns true if the floats are equal or within
 /// 1e-10 of each other
