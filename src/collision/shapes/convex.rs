@@ -80,6 +80,10 @@ impl CollidesWith<Convex> for Convex {
     }
 }
 
+/// Calulcates and returns the maximum separation value on a separating axis
+/// for the two Convex polygons and returns the index of the edge normal representing
+/// the separating axis and the value of the separation using the GJK algorithm.
+/// Algorithm sourced from Dirk Gregorius GDC talk on gamedev physics: http://gdcvault.com/play/1017646/Physics-for-Game-Programmers-The
 fn find_max_separation(a: &Convex, b: &Convex, at: &Transform, bt: &Transform) -> (usize, f64) {
     let va = a.vertices();
     let na = a.normals();
@@ -90,20 +94,30 @@ fn find_max_separation(a: &Convex, b: &Convex, at: &Transform, bt: &Transform) -
 
     for i in 0..va.len() {
         let vertex_a = va[i].transform(at);
-        let normal_a = na[i].rotate(at.rotation());
+        let normal = na[i].rotate(at.rotation()); // don't need full transform because normal is unit vector
+        let neg_normal = -normal;
 
+        // find the support point on b
+        // by projecting the vertices in b against
+        // the reversed edge normal for the edge
         let mut best_proj = f64::MIN;
+        let mut support = vb[0]; // we don't transform because we don't care about the init value
         for j in 0..vb.len() {
             let vertex_b = vb[j].transform(bt);
-            let proj = normal_a * (vertex_b - vertex_a);
+            let proj = neg_normal * vertex_b; // scalar projection via: https://en.wikipedia.org/wiki/Scalar_projection
             if proj > best_proj {
                 best_proj = proj;
+                support = vertex_b;
             }
         }
 
-        if best_proj > max_sep {
+        // calculate distance of support to edge,
+        // save maximum distance. If the polygons intersect,
+        // this will be the least negative separation
+        let sep = normal * (support - vertex_a); // distance of point to edge via: https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#A_vector_projection_proof
+        if sep > max_sep {
             best_i = i;
-            max_sep = best_proj;
+            max_sep = sep;
         }
     }
 
