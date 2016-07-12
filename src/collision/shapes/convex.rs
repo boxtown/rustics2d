@@ -171,18 +171,19 @@ fn graham_scan(vertices: &[Vec2d]) -> Result<Vec<Vec2d>, ()> {
     let mut m: usize = 1;
     let mut i: usize = 1;
     while i < n {
-        let p1 = clone[i];
-        let p2 = match i + 1 == n {
-            true => clone[0],
-            false => clone[i + 1],
-        };
-        while i < n - 1 && vertex_angle(sentinel, p1, p2) == VertexAngle::Collinear {
+        while i < n - 1 &&
+              vertex_angle(sentinel, clone[i], clone[i + 1]) == VertexAngle::Collinear {
             i += 1;
         }
 
         clone[m] = clone[i];
         m += 1;
         i += 1;
+    }
+
+    // if less than 3 points remaining, cannot make hull
+    if m < 3 {
+        return Err(());
     }
 
     // push first two vertices into hull
@@ -247,17 +248,24 @@ fn lowest_y_index(vertices: &[Vec2d]) -> usize {
 #[cfg(test)]
 mod test {
     use std::vec::Vec;
-    use collision::collidable::Convex;
-    use vec2d::Vec2d;
+    use collision::shapes::Convex;
+    use common::Vec2d;
 
     #[test]
     fn test_convex_from_vertices() {
         // test too few vertices
         let mut v: Vec<Vec2d> = Vec::new();
-        assert_eq!(Convex::new(&mut v).is_err(), true);
+        assert!(Convex::new(&mut v).is_err());
         v.push(Vec2d::new(0.0, 0.0));
         v.push(Vec2d::new(1.0, 1.0));
-        assert_eq!(Convex::new(&mut v).is_err(), true);
+        assert!(Convex::new(&mut v).is_err());
+
+        // test line
+        v.push(Vec2d::new(2.0, 2.0));
+        v.push(Vec2d::new(3.0, 3.0));
+        assert!(Convex::new(&mut v).is_err());
+        v.pop();
+        v.pop();
 
         // test basic hull
         v.push(Vec2d::new(1.0, 0.0));
@@ -297,8 +305,9 @@ mod test {
             }
         }
 
-        // add collinear point
+        // add collinear points
         v.push(Vec2d::new(1.0, 0.5));
+        v.push(Vec2d::new(1.0, 0.25));
         clone = v.clone();
         r = Convex::new(&mut clone);
         r_ok = r.ok().unwrap();

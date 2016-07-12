@@ -52,7 +52,7 @@ impl Rotation {
     ///
     /// This function theoretically performs:
     ///
-    /// ```
+    /// ```rust,ignore
     /// [c -s] -> [c  s]
     /// [s  c]    [-s c]
     /// ```
@@ -92,7 +92,7 @@ impl ops::Mul for Rotation {
     ///
     /// This function effectively performs:
     ///
-    /// ```
+    /// ```rust,ignore
     /// [c1 -s1] * [c2 -s2] -> [c1*c2-s1*s2 -c1*s2-s1*c2]
     /// [s1  c1]   [s2  c2]    [s1*c2+c1*s2 -s1*s2+c1*c2]
     /// ```
