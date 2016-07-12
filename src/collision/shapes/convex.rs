@@ -124,8 +124,8 @@ fn find_max_separation(a: &Convex, b: &Convex, at: &Transform, bt: &Transform) -
     (best_i, max_sep)
 }
 
-// The type of angle three consecutive
-// vertices form in 2d space
+/// The type of angle three consecutive
+/// vertices form in 2d space
 #[derive(Debug, Eq, PartialEq)]
 enum VertexAngle {
     Collinear,
@@ -133,6 +133,9 @@ enum VertexAngle {
     CounterClockwise,
 }
 
+/// Performs a graham scan of the passed in vertices, returning
+/// the resulting convex hull or an error if a hull could not be created
+/// taken from: Sedgewick & Wayne, Algorithms, 4th edition, https://github.com/kevin-wayne/algs4/blob/master/src/main/java/edu/princeton/cs/algs4/GrahamScan.java
 fn graham_scan(vertices: &[Vec2d]) -> Result<Vec<Vec2d>, ()> {
     let n = vertices.len();
     if n < 3 {
@@ -165,52 +168,41 @@ fn graham_scan(vertices: &[Vec2d]) -> Result<Vec<Vec2d>, ()> {
         }
     });
 
-    // If two or more vertices make the same angle
-    // with the first point, remove all but the furthest
-    // point from the first point
-    let mut m: usize = 1;
-    let mut i: usize = 1;
-    while i < n {
-        while i < n - 1 &&
-              vertex_angle(sentinel, clone[i], clone[i + 1]) == VertexAngle::Collinear {
-            i += 1;
-        }
+    let mut hull = Vec::new();
+    hull.push(sentinel);
 
-        clone[m] = clone[i];
-        m += 1;
-        i += 1;
-    }
-
-    // if less than 3 points remaining, cannot make hull
-    if m < 3 {
+    // find first vertex not equal to sentinel
+    let first = clone.iter().position(|&x| x != sentinel);
+    if first.is_none() {
+        // all vertices are the same point, error
         return Err(());
     }
 
-    // push first two vertices into hull
-    let mut hull = Vec::new();
-    hull.push(clone[0]);
-    hull.push(clone[1]);
-
-    // process remaining vertices
-    i = 2;
-    while i < m {
-        // keep removing top while the angle formed by
-        // next-to-top, top, and clone[i] makes a non-left turn
-        let mut top = hull[hull.len() - 1];
-        let mut next = hull[hull.len() - 2];
-        let p = clone[i];
-        while hull.len() >= 3 && vertex_angle(next, top, p) != VertexAngle::CounterClockwise {
-            hull.pop();
-            top = hull[hull.len() - 1];
-            next = hull[hull.len() - 2];
-        }
-        hull.push(p);
-        i += 1;
+    // find first vertex not collinear with sentinel and first
+    let second = clone.iter().position(|&x| {
+        vertex_angle(sentinel, clone[first.unwrap()], x) != VertexAngle::Collinear
+    });
+    if second.is_none() {
+        // all vertices collinear with first two vertices, error
+        return Err(());
     }
-    return Ok(hull);
+    hull.push(clone[second.unwrap() - 1]);
+
+    // Graham Scan
+    // assertion: At this point, we have at the minimum 3 vertices
+    // necessary to create a convex hull
+    for i in second.unwrap()..n {
+        let mut top = hull.pop().unwrap();
+        while vertex_angle(hull[hull.len() - 1], top, clone[i]) != VertexAngle::CounterClockwise {
+            top = hull.pop().unwrap();
+        }
+        hull.push(top);
+        hull.push(clone[i]);
+    }
+    Ok(hull)
 }
 
-// Returns the type of angle three vertices form in 2d space
+/// Returns the type of angle three vertices form in 2d space
 fn vertex_angle(p1: Vec2d, p2: Vec2d, p3: Vec2d) -> VertexAngle {
     let x = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
     if util::feq(x, 0.0) {
@@ -222,15 +214,15 @@ fn vertex_angle(p1: Vec2d, p2: Vec2d, p3: Vec2d) -> VertexAngle {
     return VertexAngle::CounterClockwise;
 }
 
-// Returns the square of the distance
-// of two vertices
+/// Returns the square of the distance
+/// of two vertices
 fn dist_sq(p1: Vec2d, p2: Vec2d) -> f64 {
     (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)
 }
 
-// iterates through vertices finding the index of the point
-// with the lowest y coordinate or the one with the left-most
-// x coordinate in case of a tie
+/// iterates through vertices finding the index of the point
+/// with the lowest y coordinate or the one with the left-most
+/// x coordinate in case of a tie
 fn lowest_y_index(vertices: &[Vec2d]) -> usize {
     let mut i: usize = 0;
     let mut j: usize = 0;
@@ -269,8 +261,7 @@ mod test {
 
         // test basic hull
         v.push(Vec2d::new(1.0, 0.0));
-        let mut clone = v.clone();
-        let mut r = Convex::new(&mut clone);
+        let mut r = Convex::new(&mut v);
         let mut r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
@@ -286,10 +277,31 @@ mod test {
             }
         }
 
+        // test add point at cw angle to last point
+        v.push(Vec2d::new(2.0, 1.0));
+        r = Convex::new(&mut v);
+        r_ok = r.ok().unwrap();
+        {
+            let r_vertices = r_ok.vertices();
+            assert_eq!(4, r_vertices.len());
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(0.0, 0.0)).is_none() {
+                assert!(false);
+            }
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 1.0)).is_none() {
+                assert!(false);
+            }
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(1.0, 0.0)).is_none() {
+                assert!(false);
+            }
+            if r_vertices.iter().find(|&x| *x == Vec2d::new(2.0, 1.0)).is_none() {
+                assert!(false);
+            }
+        }
+        v.pop();
+
         // add internal point
         v.push(Vec2d::new(0.5, 0.5));
-        clone = v.clone();
-        r = Convex::new(&mut clone);
+        r = Convex::new(&mut v);
         r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
@@ -308,8 +320,7 @@ mod test {
         // add collinear points
         v.push(Vec2d::new(1.0, 0.5));
         v.push(Vec2d::new(1.0, 0.25));
-        clone = v.clone();
-        r = Convex::new(&mut clone);
+        r = Convex::new(&mut v);
         r_ok = r.ok().unwrap();
         {
             let r_vertices = r_ok.vertices();
