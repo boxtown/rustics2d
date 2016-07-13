@@ -100,9 +100,9 @@ fn find_max_separation(a: &Convex, b: &Convex, at: &Transform, bt: &Transform) -
         // find the support point on b
         // by projecting the vertices in b against
         // the reversed edge normal for the edge
-        let mut best_proj = f64::MIN;
-        let mut support = vb[0]; // we don't transform because we don't care about the init value
-        for j in 0..vb.len() {
+        let mut support = vb[0].transform(bt);
+        let mut best_proj = neg_normal * support;
+        for j in 1..vb.len() {
             let vertex_b = vb[j].transform(bt);
             let proj = neg_normal * vertex_b; // scalar projection via: https://en.wikipedia.org/wiki/Scalar_projection
             if proj > best_proj {
